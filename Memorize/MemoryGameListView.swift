@@ -12,19 +12,15 @@ struct MemoryGameListView: View {
     var body: some View {
         NavigationView {
             List {
-                MemoryGameRow()
+                NavigationLink(destination: EmojiMemoryGameView(viewModel: EmojiMemoryGame())) {
+                    Text("🐳🦖🔥 Emoji Memory Game")
+                }
+                
+                NavigationLink(destination: ShapeSetGameView(viewModel: ShapeSetGame())) {
+                    Text("🔶🔵🔲 Shape Set Game")
+                }
             }
             .navigationBarTitle(Text("Memorizes"))
-        }
-    }
-}
-
-struct MemoryGameRow: View {
-    var body: some View {
-        HStack {
-            NavigationLink(destination: EmojiMemoryGameView(viewModel: EmojiMemoryGame())) {
-                Text("🐳🦖🔥 Emoji Memory Game")
-            }
         }
     }
 }

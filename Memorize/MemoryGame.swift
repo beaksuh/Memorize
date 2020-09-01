@@ -13,6 +13,7 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
     
     private var indexOfChosenForMatchingCard: Int? {
         get { cards.indices.filter( {cards[$0].isFaceUp} ).only }
+        
         set {
             for index in cards.indices {
                 cards[index].isFaceUp = index == newValue
@@ -41,13 +42,6 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
             } else {
                 indexOfChosenForMatchingCard = chosenIndex
             }
-        }
-    }
-    
-    mutating func initialize() {
-        for index in cards.indices {
-            cards[index].isMatched = false
-            cards[index].isFaceUp = false
         }
     }
 

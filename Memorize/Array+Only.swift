@@ -13,3 +13,9 @@ extension Array {
         self.count == 1 ? first : nil
     }
 }
+
+extension Array {
+    var set: Array? {
+        self.count == 3 ? self : nil
+    }
+}
