@@ -10,27 +10,37 @@ import SwiftUI
 
 struct ShapeCanvas: Shape {
     private var numberOfShapes: CGFloat
-    private var sketch: (CGFloat, CGRect) -> Path
+    private var sketch: ((CGFloat, CGRect) -> Path)? = nil
+    private var shapes = [RectangleSketch.Category : RectangleSketch.sketch,
+                          CircleSketch.Category : CircleSketch.sketch,
+                          DiamondSketch.Category : DiamondSketch.sketch]
     
-    init(numberOfShapes: CGFloat, sketch: @escaping (CGFloat, CGRect) -> Path) {
+    init(numberOfShapes: CGFloat, category: String) {
         self.numberOfShapes = numberOfShapes
-        self.sketch = sketch
+        sketch = shapes[category]
     }
     
     func path(in rect: CGRect) -> Path {
-        sketch(numberOfShapes, rect)
+        sketch!(numberOfShapes, rect)
     }
 }
 
 protocol ShapeDrawable {
-    var numberOfShapesLimit: CGFloat { get }
-    func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path
+    static var numberOfShapesLimit: CGFloat { get }
+    static func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path
+    
+    static var Category: String { get }
+    var category: String { get }
 }
 
 struct RectangleSketch: ShapeDrawable {
-    let numberOfShapesLimit: CGFloat = 3.0
+    static var numberOfShapesLimit: CGFloat = 3.0
+    static var Category = "Rectangle"
+    var category: String {
+        DiamondSketch.Category
+    }
     
-    func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
+    static func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
         var p = Path()
         
         let width = rect.width/(numberOfShapesLimit+1)
@@ -51,9 +61,14 @@ struct RectangleSketch: ShapeDrawable {
 }
 
 struct CircleSketch: ShapeDrawable {
-    let numberOfShapesLimit: CGFloat = 3.0
+    static var numberOfShapesLimit: CGFloat = 3.0
+    static var Category = "Circle"
+    var category: String {
+        DiamondSketch.Category
+    }
     
-    func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
+    
+    static func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
         var p = Path()
         
         let height = rect.height/(numberOfShapesLimit + 1)
@@ -70,7 +85,7 @@ struct CircleSketch: ShapeDrawable {
         return p
     }
     
-    func circlePath(center: CGPoint, radius: CGFloat) -> Path {
+    static func circlePath(center: CGPoint, radius: CGFloat) -> Path {
         var p = Path()
         p.addArc(center: center, radius: radius, startAngle: Angle.degrees(0), endAngle: Angle.degrees(360), clockwise: false)
     
@@ -80,8 +95,13 @@ struct CircleSketch: ShapeDrawable {
 
 
 struct DiamondSketch: ShapeDrawable {
-    let numberOfShapesLimit: CGFloat = 3.0
-    func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
+    static var numberOfShapesLimit: CGFloat = 3.0
+    static var Category = "Diamond"
+    var category: String {
+        DiamondSketch.Category
+    }
+    
+    static func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
         var p = Path()
 
         
@@ -106,28 +126,6 @@ struct DiamondSketch: ShapeDrawable {
             startYOffset = startYOffset + width
         }
 
-        return p
-    }
-}
-
-struct FlowerSketch: ShapeDrawable {
-    let numberOfShapesLimit: CGFloat = 3.0
-    var petalOffset: Double = -20
-    var petalWidth: Double = 100
-    
-    func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
-        var p = Path()
-        for number in stride(from: 0, through: CGFloat.pi * 2, by: CGFloat.pi / 8) {
-            let rotation = CGAffineTransform(rotationAngle: number)
-            let position =
-                rotation.concatenating(CGAffineTransform(translationX: rect.width / 2, y: rect.height / 2))
-
-            let originalPetal = Path(ellipseIn: CGRect(x: CGFloat(petalOffset), y: 0, width: CGFloat(petalWidth), height: rect.width / 2))
-
-            let rotatedPetal = originalPetal.applying(position)
-
-            p.addPath(rotatedPetal)
-        }
         return p
     }
 }
@@ -159,23 +157,25 @@ extension ShapeCanvas {
     }
 }
 
+struct Strokify: ShapeModifier {
+
+    @ViewBuilder
+    func body(shape: ShapeCanvas) -> some View {
+        shape.stroke(lineWidth: 2)
+        
+    }
+}
+
 extension ShapeCanvas {
     func stroke(will apply: Bool, lineWidth: CGFloat = 1) -> some Shape {
         apply ? AnyShape(stroke(lineWidth: lineWidth)) : AnyShape(self)
     }
 }
 
-struct Strokify: ShapeModifier {
-    
-    @ViewBuilder
-    func body(shape: ShapeCanvas) -> some View {
-        
-    }
-}
 
 struct ShapeCanvas_Previews: PreviewProvider {
     static var previews: some View {
-        ShapeCanvas(numberOfShapes: 3, sketch: RectangleSketch().sketch)
+        ShapeCanvas(numberOfShapes: 3, category: RectangleSketch.Category)
         .fill(Color.red, style: FillStyle(eoFill: true))
     }
 }

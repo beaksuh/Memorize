@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct SetGame<SetContent> {
+struct SetGame<SetContent> where SetContent: Equatable {
     private(set) var cards: Array<Card>
     private let numberOfShapesInCardLimit: Int = 3
     private var numberOfDealCard: Int = 12
@@ -91,13 +91,13 @@ struct SetGame<SetContent> {
         }
         
         var shapeRule: Bool = false
-//        if colorRule {
-//            if cards[indexOfcards[0]].shape == cards[indexOfcards[1]].shape, cards[indexOfcards[1]].shape == cards[indexOfcards[2]].shape {
-//                shapeRule = true
-//            } else if cards[indexOfcards[0]].shape != cards[indexOfcards[1]].shape, cards[indexOfcards[1]].shape != cards[indexOfcards[2]].shape, cards[indexOfcards[0]].shape != cards[indexOfcards[2]].shape {
-//                shapeRule = true
-//            }
-//        }
+        if colorRule {
+            if cards[indexOfcards[0]].shape == cards[indexOfcards[1]].shape, cards[indexOfcards[1]].shape == cards[indexOfcards[2]].shape {
+                shapeRule = true
+            } else if cards[indexOfcards[0]].shape != cards[indexOfcards[1]].shape, cards[indexOfcards[1]].shape != cards[indexOfcards[2]].shape, cards[indexOfcards[0]].shape != cards[indexOfcards[2]].shape {
+                shapeRule = true
+            }
+        }
         
         return shapeRule
     }

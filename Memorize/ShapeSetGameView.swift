@@ -78,7 +78,7 @@ struct ShapeSetGameView: View {
 }
 
 struct ShapeCardView: View {
-    var card: SetGame<ShapeDrawable>.Card
+    var card: SetGame<String>.Card
     var body: some View {
         GeometryReader { geometry in
             self.body(for: geometry.size)
@@ -86,10 +86,10 @@ struct ShapeCardView: View {
     }
     
     func body(for size: CGSize) -> some View {
-        ShapeCanvas(numberOfShapes: CGFloat(card.numberOfShapesInCard), sketch: card.shape.sketch)
-            .stroke(will: card.shade == SetGame<ShapeDrawable>.Card.ShadeType.empty, lineWidth: 2)
+        ShapeCanvas(numberOfShapes: CGFloat(card.numberOfShapesInCard), category: card.shape)
+            .stroke(will: card.shade == SetGame<String>.Card.ShadeType.empty, lineWidth: 2)
             .fill(ShapeSetGame.gerColor(from: card.color))
-            .opacity(card.shade == SetGame<ShapeDrawable>.Card.ShadeType.striped ? 0.5 : 1.0)
+            .opacity(card.shade == SetGame<String>.Card.ShadeType.striped ? 0.5 : 1.0)
             .cardify(isFaceUp: card.isInPlayGround)
             .selectify(isSelected: card.isChosen)
             .padding(5)

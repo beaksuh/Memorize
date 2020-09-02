@@ -11,35 +11,30 @@ import SwiftUI
 class ShapeSetGame: ObservableObject {
     @Published private(set) var model = ShapeSetGame.createShapeSetGame()
     
-    static func createShapeSetGame() -> SetGame<ShapeDrawable> {
-        var shapes = [ShapeDrawable]()
-        
-        shapes.append(RectangleSketch())
-        shapes.append(CircleSketch())
-        shapes.append(DiamondSketch())
-        
-        return SetGame<ShapeDrawable>(shapeCount: shapes.count) { shapeIndex in
+    static func createShapeSetGame() -> SetGame<String> {
+        let shapes = [RectangleSketch.Category, CircleSketch.Category, DiamondSketch.Category]
+        return SetGame<String>(shapeCount: shapes.count) { shapeIndex in
             shapes[shapeIndex]
         }
     }
-    
-    func choose(card: SetGame<ShapeDrawable>.Card) {
+        
+    func choose(card: SetGame<String>.Card) {
         model.choose(card: card)
     }
     
-    var cards: Array<SetGame<ShapeDrawable>.Card> {
+    var cards: Array<SetGame<String>.Card> {
         model.cards
     }
     
-    var playingCards: Array<SetGame<ShapeDrawable>.Card> {
+    var playingCards: Array<SetGame<String>.Card> {
         model.cards.filter { card in card.isInPlayGround }
     }
     
-    var setCards: Array<SetGame<ShapeDrawable>.Card> {
+    var setCards: Array<SetGame<String>.Card> {
         model.cards.filter { card in card.isSet }
     }
     
-    var idleCards: Array<SetGame<ShapeDrawable>.Card> {
+    var idleCards: Array<SetGame<String>.Card> {
         model.cards.filter { card in !card.isInPlayGround }
     }
     
@@ -55,7 +50,7 @@ class ShapeSetGame: ObservableObject {
         model.moreDeal()
     }
     
-    static func gerColor(from colorType: SetGame<ShapeDrawable>.Card.ColorType) -> Color {
+    static func gerColor(from colorType: SetGame<String>.Card.ColorType) -> Color {
         switch colorType {
         case .black:
             return Color.black
