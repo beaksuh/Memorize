@@ -33,73 +33,85 @@ struct SetGame<SetContent> where SetContent: Equatable {
     }
     
     mutating func deal() {
-        for index in 0..<cards.count {
+        for index in cards.indices {
             cards[index].isInPlayGround = false
         }
         
         cards.shuffle()
         
-        for index in 0..<numberOfDealCard {
-            cards[index].isInPlayGround = true
+        var addedNumberOfCard = 0, index = 0
+        while addedNumberOfCard < numberOfDealCard {
+            if cards.indices.contains(index) {
+                if !cards[index].isSet {
+                    cards[index].isInPlayGround = true
+                    addedNumberOfCard += 1
+                }
+                
+                index += 1
+            }
         }
     }
     
     mutating func moreDeal() {
         let moreIndex = min(cards.count - 1, numberOfDealCard+3)
-        for index in numberOfDealCard..<moreIndex {
-            cards[index].isInPlayGround = true
+        var addedNumberOfCard = numberOfDealCard
+        var index = cards.indices.filter( {cards[$0].isInPlayGround} ).last ?? 0
+        
+        while addedNumberOfCard <= moreIndex {
+            if cards.indices.contains(index) {
+                if !cards[index].isSet {
+                    cards[index].isInPlayGround = true
+                    addedNumberOfCard += 1
+                }
+                
+                index += 1
+            } else {
+                break
+            }
         }
+        
         numberOfDealCard = moreIndex
     }
-    
-    var indexOfChosenForSetCard = Array<SetGame<SetContent>.Card>()
     
     mutating func choose(card: SetGame<SetContent>.Card) {
         if let chosenIndex = cards.firstIndex(of: card), cards[chosenIndex].isInPlayGround, !cards[chosenIndex].isSet {
             cards[chosenIndex].isChosen = !cards[chosenIndex].isChosen
             
-            if let chosenCards = cards.indices.filter( {cards[$0].isChosen} ).set {
-                if setRule(indexOfcards: chosenCards) {
-                    cards[chosenCards[0]].isSet = true
-                    cards[chosenCards[1]].isSet = true
-                    cards[chosenCards[2]].isSet = true
-                } else {
-                    cards[chosenCards[0]].isChosen = false
-                    cards[chosenCards[1]].isChosen = false
-                    cards[chosenCards[2]].isChosen = false
+            if let chosenIndexOfCards = cards.indices.filter( {cards[$0].isChosen} ).triple {
+                if checkSet(indexOfcards: chosenIndexOfCards) {
+                    for chosenIndexOfCard in chosenIndexOfCards {
+                        cards[chosenIndexOfCard].isSet = true
+                        cards[chosenIndexOfCard].isInPlayGround = false
+                    }
+                    numberOfDealCard = numberOfDealCard - 3
+                }
+                
+                for chosenIndexOfCard in chosenIndexOfCards {
+                    cards[chosenIndexOfCard].isChosen = false
                 }
             }
         }
     }
     
-    func setRule(indexOfcards: Array<Int>) -> Bool {
+    func checkSet(indexOfcards: Array<Int>) -> Bool {
+        let checkCards = [ cards[indexOfcards[0]], cards[indexOfcards[1]], cards[indexOfcards[2]] ]
         
-        var shadeRule: Bool = false
-        if cards[indexOfcards[0]].shade == cards[indexOfcards[1]].shade, cards[indexOfcards[1]].shade == cards[indexOfcards[2]].shade {
-            shadeRule = true
-        } else if cards[indexOfcards[0]].shade != cards[indexOfcards[1]].shade, cards[indexOfcards[1]].shade != cards[indexOfcards[2]].shade, cards[indexOfcards[0]].shade != cards[indexOfcards[2]].shade {
-            shadeRule = true
-        }
+        let shadeSet = checkCards.allSatisfy({$0.shade == checkCards.last!.shade }) ||
+            (checkCards[0].shade != checkCards[1].shade &&
+                checkCards[0].shade != checkCards[2].shade &&
+                checkCards[1].shade != checkCards[2].shade)
         
-        var colorRule: Bool = false
-        if shadeRule {
-            if cards[indexOfcards[0]].color == cards[indexOfcards[1]].color, cards[indexOfcards[1]].color == cards[indexOfcards[2]].color {
-                colorRule = true
-            } else if cards[indexOfcards[0]].color != cards[indexOfcards[1]].color, cards[indexOfcards[1]].color != cards[indexOfcards[2]].color, cards[indexOfcards[0]].color != cards[indexOfcards[2]].color {
-                colorRule = true
-            }
-        }
+        let shapeSet = checkCards.allSatisfy({$0.shape == checkCards.last!.shape }) ||
+            (checkCards[0].shape != checkCards[1].shape &&
+                checkCards[0].shape != checkCards[2].shape &&
+                checkCards[1].shape != checkCards[2].shape)
         
-        var shapeRule: Bool = false
-        if colorRule {
-            if cards[indexOfcards[0]].shape == cards[indexOfcards[1]].shape, cards[indexOfcards[1]].shape == cards[indexOfcards[2]].shape {
-                shapeRule = true
-            } else if cards[indexOfcards[0]].shape != cards[indexOfcards[1]].shape, cards[indexOfcards[1]].shape != cards[indexOfcards[2]].shape, cards[indexOfcards[0]].shape != cards[indexOfcards[2]].shape {
-                shapeRule = true
-            }
-        }
+        let colorSet = checkCards.allSatisfy({$0.color == checkCards.last!.color }) ||
+            (checkCards[0].color != checkCards[1].color &&
+                checkCards[0].color != checkCards[2].color &&
+                checkCards[1].color != checkCards[2].color)
         
-        return shapeRule
+        return shadeSet && shapeSet && colorSet
     }
     
     struct Card: Identifiable {
@@ -112,9 +124,11 @@ struct SetGame<SetContent> where SetContent: Equatable {
         }
         
         var isSet: Bool = false
+        var applyEffectForFailOfSet: Bool = false
+        
         var isChosen: Bool = false
         var isInPlayGround: Bool = false
-       
+        
         var color: ColorType
         var shade: ShadeType
         var numberOfShapesInCard: Int

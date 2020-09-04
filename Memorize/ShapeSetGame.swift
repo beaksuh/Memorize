@@ -12,12 +12,12 @@ class ShapeSetGame: ObservableObject {
     @Published private(set) var model = ShapeSetGame.createShapeSetGame()
     
     static func createShapeSetGame() -> SetGame<String> {
-        let shapes = [RectangleSketch.Category, CircleSketch.Category, DiamondSketch.Category]
+        let shapes = [RectangleShape.Category, CircleShape.Category, DiamondShape.Category]
         return SetGame<String>(shapeCount: shapes.count) { shapeIndex in
             shapes[shapeIndex]
         }
     }
-        
+    
     func choose(card: SetGame<String>.Card) {
         model.choose(card: card)
     }
@@ -30,12 +30,12 @@ class ShapeSetGame: ObservableObject {
         model.cards.filter { card in card.isInPlayGround }
     }
     
-    var setCards: Array<SetGame<String>.Card> {
-        model.cards.filter { card in card.isSet }
+    var idleCards: Array<SetGame<String>.Card> {
+        model.cards.filter { card in !card.isInPlayGround && !card.isSet }
     }
     
-    var idleCards: Array<SetGame<String>.Card> {
-        model.cards.filter { card in !card.isInPlayGround }
+    var setCards: Array<SetGame<String>.Card> {
+        model.cards.filter { card in card.isSet }
     }
     
     func resetGame() {

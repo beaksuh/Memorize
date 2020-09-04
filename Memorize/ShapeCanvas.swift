@@ -10,37 +10,37 @@ import SwiftUI
 
 struct ShapeCanvas: Shape {
     private var numberOfShapes: CGFloat
-    private var sketch: ((CGFloat, CGRect) -> Path)? = nil
-    private var shapes = [RectangleSketch.Category : RectangleSketch.sketch,
-                          CircleSketch.Category : CircleSketch.sketch,
-                          DiamondSketch.Category : DiamondSketch.sketch]
+    private var paint: ((CGFloat, CGRect) -> Path)? = nil
+    private var shapes = [RectangleShape.Category : RectangleShape.paint,
+                          CircleShape.Category : CircleShape.paint,
+                          DiamondShape.Category : DiamondShape.paint]
     
     init(numberOfShapes: CGFloat, category: String) {
         self.numberOfShapes = numberOfShapes
-        sketch = shapes[category]
+        paint = shapes[category]
     }
     
     func path(in rect: CGRect) -> Path {
-        sketch!(numberOfShapes, rect)
+        paint!(numberOfShapes, rect)
     }
 }
 
 protocol ShapeDrawable {
     static var numberOfShapesLimit: CGFloat { get }
-    static func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path
+    static func paint(numberOfShapes: CGFloat, in rect: CGRect) -> Path
     
     static var Category: String { get }
     var category: String { get }
 }
 
-struct RectangleSketch: ShapeDrawable {
+struct RectangleShape: ShapeDrawable {
     static var numberOfShapesLimit: CGFloat = 3.0
     static var Category = "Rectangle"
     var category: String {
-        DiamondSketch.Category
+        RectangleShape.Category
     }
     
-    static func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
+    static func paint(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
         var p = Path()
         
         let width = rect.width/(numberOfShapesLimit+1)
@@ -55,20 +55,20 @@ struct RectangleSketch: ShapeDrawable {
             p.addRoundedRect(in: shapeRect, cornerSize: CGSize(width: size.width/5, height: size.width/5))
             startX = startX + width + spacing
         }
-
+        
         return p
     }
 }
 
-struct CircleSketch: ShapeDrawable {
+struct CircleShape: ShapeDrawable {
     static var numberOfShapesLimit: CGFloat = 3.0
     static var Category = "Circle"
     var category: String {
-        DiamondSketch.Category
+        CircleShape.Category
     }
     
     
-    static func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
+    static func paint(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
         var p = Path()
         
         let height = rect.height/(numberOfShapesLimit + 1)
@@ -88,34 +88,34 @@ struct CircleSketch: ShapeDrawable {
     static func circlePath(center: CGPoint, radius: CGFloat) -> Path {
         var p = Path()
         p.addArc(center: center, radius: radius, startAngle: Angle.degrees(0), endAngle: Angle.degrees(360), clockwise: false)
-    
+        
         return p
     }
 }
 
 
-struct DiamondSketch: ShapeDrawable {
+struct DiamondShape: ShapeDrawable {
     static var numberOfShapesLimit: CGFloat = 3.0
     static var Category = "Diamond"
     var category: String {
-        DiamondSketch.Category
+        DiamondShape.Category
     }
     
-    static func sketch(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
+    static func paint(numberOfShapes: CGFloat, in rect: CGRect) -> Path {
         var p = Path()
-
+        
         
         let width = rect.width/(numberOfShapesLimit+1)
         let radius = width / 2
         var startX = ((rect.width - width * numberOfShapes) / 2) + radius
         var startYOffset = rect.midY - numberOfShapes * radius
-
+        
         for _ in 0..<Int(numberOfShapes) {
             let top = CGPoint(x: startX, y: startYOffset)
             let bottom = CGPoint(x: startX, y: startYOffset + width)
             let left = CGPoint(x: startX - radius, y: startYOffset + radius)
             let right = CGPoint(x: startX + radius, y: startYOffset + radius)
-
+            
             p.move(to: top)
             p.addLine(to: left)
             p.addLine(to: bottom)
@@ -125,7 +125,7 @@ struct DiamondSketch: ShapeDrawable {
             startX = startX + width
             startYOffset = startYOffset + width
         }
-
+        
         return p
     }
 }
@@ -137,33 +137,12 @@ struct AnyShape: Shape {
             return path
         }
     }
-
+    
     func path(in rect: CGRect) -> Path {
         return _path(rect)
     }
-
+    
     private let _path: (CGRect) -> Path
-}
-
-protocol ShapeModifier {
-    associatedtype Body : View
-
-    func body(shape: ShapeCanvas) -> Self.Body
-}
-
-extension ShapeCanvas {
-    func modifier<M>(_ modifier: M) -> some View where M: ShapeModifier {
-        modifier.body(shape: self)
-    }
-}
-
-struct Strokify: ShapeModifier {
-
-    @ViewBuilder
-    func body(shape: ShapeCanvas) -> some View {
-        shape.stroke(lineWidth: 2)
-        
-    }
 }
 
 extension ShapeCanvas {
@@ -175,7 +154,7 @@ extension ShapeCanvas {
 
 struct ShapeCanvas_Previews: PreviewProvider {
     static var previews: some View {
-        ShapeCanvas(numberOfShapes: 3, category: RectangleSketch.Category)
-        .fill(Color.red, style: FillStyle(eoFill: true))
+        ShapeCanvas(numberOfShapes: 3, category: RectangleShape.Category)
+            .fill(Color.red, style: FillStyle(eoFill: true))
     }
 }

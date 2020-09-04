@@ -15,7 +15,7 @@ extension Array {
 }
 
 extension Array {
-    var set: Array? {
+    var triple: Array? {
         self.count == 3 ? self : nil
     }
 }
